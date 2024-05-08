@@ -1,7 +1,8 @@
 #!/bin/bash
 
-set -e
-source ./config
+# set -e # This exits off Myriad for me when an error arises.
+source "triogwas_config.cfg"
+cd "${home_directory}
 
 mkdir -p ${results}
 mkdir -p ${section_01_dir}
