@@ -18,7 +18,7 @@ analyst_email="i.badini@ucl.ac.uk"
 home_directory="/ess/pXXX/cluster/projects/trio_gwas"
 
 bfile_raw="${home_directory}/scratch/MoBaPsychGen_v1-ec-eur-batch-basic-qc.nodups"
-famfile="scratch/MoBaPsychGen_v1-ec-eur-batch-basic-qc.nodups.fam"
+famfile="scratch/MoBaPsychGen_v1-ec-eur-batch-basic-qc.nodups.fam" # Is it necessary to have both of these - can't you just add .fam to ${bfile_raw}?
 phenotypes="scratch/phenotypes_outcomes.pheno"
 covariates="scratch/covariates.cov"
 
@@ -30,4 +30,4 @@ quality_scores="scratch/snp.info"
 chunks_snp_number="2000"
 
 # DO NOT MODIFY
-source ${home_directory}/resources/parameters
+source "${home_directory}/resources/parameters" # Needs to be wrapped in quotation marks so file paths work
