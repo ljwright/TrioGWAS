@@ -74,7 +74,7 @@ if(any(is.na(cov$Sex)))
   warning("ERROR: ", msg)
   }
 
-index<-cov$Sex %in% c("1", "0")
+index<-cov$Sex %in% c("1", "0") # I think this needs a further check whether it checks that class(cov$Sex) is numeric and then checks only values are 0 or 1.
 if(any(!index))
   {
   msg<-paste0("There are some values in the Sex column that are neither 0 (F) nor 1 (M). Please categorise Males as 1 and Females as 0")
@@ -83,7 +83,8 @@ if(any(!index))
   }
   
 #Check Age
-age_columns <- grep("^Age", colnames(cov), value = TRUE)
+age_columns <- grep("^Age", colnames(cov), value = TRUE) # If the data are in wide format, the phenotypes are measured at the same age, and there is different missingness in each phenotype, then Age_* will legitimately have missing values in it
+# Also is it a problem that it has missing values? Same with age. Can't you just have a set of checks that rather than creating errors, just record the relevant information to be sent to you? 
 
 if(length(age_columns)<1)
 	{
@@ -92,7 +93,7 @@ if(length(age_columns)<1)
 	warning("ERROR: ", msg)
 	}
   
-  if(any(sapply(age_columns, function(col) any(is.na(cov[[col]])))))
+  if(any(sapply(age_columns, function(col) any(is.na(cov[[col]]))))) # If you are doing this check, it needs to be more nuanced - e.g., where !is.na(BMI), all(!is.na(Age_BMI)) == TRUE
   {
   msg<-paste0("Missing values for age. Please make sure all individuals have data for this covariate.")
   errorlist <-c(errorlist, msg)
