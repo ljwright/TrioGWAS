@@ -100,7 +100,7 @@ if(length(age_columns)<1)
   warning("ERROR: ", msg)
   }
   
-  if(any(sapply(age_columns, function(col) any(cov[[col]] <0))))
+  if(any(sapply(age_columns, function(col) any(na.omit(cov[[col]]) <0)))) # Creates an issue if there is any missingness - hence added na.omit
   {
    msg<-paste0("Negative values in the age column.")
   errorlist <-c(errorlist, msg)

@@ -185,7 +185,7 @@ if("BMI" %in% nom)
 {
 	message("Checking BMI")
 	m1<-mean(ph$BMI,na.rm=T)
-	age.mean<-mean(cov$Age,na.rm=T)
+	age.mean<-mean(cov$Age,na.rm=T) # This is causing a warning. I think cov isn't being read in as having numeric columns
 	if((m1<10|m1>40)&age.mean>2)
 	{
 	msg <- paste0("please convert BMI units to kg/m2")

@@ -3,31 +3,31 @@
 # General details
 
 # Please make sure this is alphanumeric (underscores allowed but no spaces)
-study_name="moba_trios"
+study_name="mcs_trios"
 
 # Analyst's name
-analyst_name="Isabella Badini"
+analyst_name="Liam Wright"
 
 # Analyst's email address
-analyst_email="i.badini@ucl.ac.uk"
+analyst_email="liam.wright@ucl.ac.uk"
 
 # Please put the full path to this directory
 # e.g. if the config file path is "/home/projects/trio_gwas/config"
 # then home_directory="/home/projects/trio_gwas"
 
-home_directory="/ess/pXXX/cluster/projects/trio_gwas"
+home_directory="/home/rmjllwr/Scratch/Projects/MCS Trio GWAS/Liam Repo"
 
-bfile_raw="${home_directory}/scratch/MoBaPsychGen_v1-ec-eur-batch-basic-qc.nodups"
-famfile="scratch/MoBaPsychGen_v1-ec-eur-batch-basic-qc.nodups.fam" # Is it necessary to have both of these - can't you just add .fam to ${bfile_raw}?
-phenotypes="scratch/phenotypes_outcomes.pheno"
-covariates="scratch/covariates.cov"
+bfile_raw="/home/rmjllwr/Scratch/Projects/MCS Trio GWAS/Preparation/triogwas_geno"
+famfile="/home/rmjllwr/Scratch/Projects/MCS Trio GWAS/Preparation/triogwas_geno.fam"
+phenotypes="/home/rmjllwr/Scratch/Projects/MCS Trio GWAS/Preparation/triogwas_pheno.txt"
+covariates="/home/rmjllwr/Scratch/Projects/MCS Trio GWAS/Preparation/triogwas_covar.txt"
 
 # Imputation quality scores
 # This should be a file with three columns, SNP, MAF and quality scores
-quality_scores="scratch/snp.info"
+quality_scores="/home/rmjllwr/Scratch/Projects/MCS Trio GWAS/Preparation/snp.info"
 
 # Splitting data-set into chunks of e.g. 10,000 SNPs to run in batch
-chunks_snp_number="2000"
+chunks_snp_number="5000" # Is there any advice on this?
 
 # DO NOT MODIFY
-source "${home_directory}/resources/parameters" # Needs to be wrapped in quotation marks so file paths work
+source "${home_directory}/resources/parameters" # Wrapped in quotation marks

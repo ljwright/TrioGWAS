@@ -1,14 +1,18 @@
 #!/bin/bash
 
 # set -e # This exits off Myriad for me when an error arises.
-source "triogwas_config.cfg"
-cd "${home_directory}
+cd "/home/rmjllwr/Scratch/Projects/MCS Trio GWAS/Liam Repo"
+source ./config
+cd "${home_directory}" # Should this be here?
 
-mkdir -p ${results}
-mkdir -p ${section_01_dir}
-mkdir -p ${section_01_dir}/logs
+module -f unload compilers mpi gcc-libs # Have to load R already. Different on different systems
+module load r/recommended
 
-exec &> >(tee ${section_01_logfile})
+mkdir -p "${results}"
+mkdir -p "${section_01_dir}"
+mkdir -p "${section_01_dir}/logs"
+
+exec &> >(tee "${section_01_logfile}")
 
 containsElement () {
 	local e
@@ -67,15 +71,15 @@ then
 fi
 
 #Check genotype file
-
+# Again, need wrapping in quotation marks.
 if [ "$arg" = "genetics" ] || [ "$arg" = "all" ] || [ "$arg" = "skipsib" ]
 then
 	section_message "genetics"
 	Rscript resources/checks/genetic_data.R \
-		${bfile_raw}.bim \
-		${bfile_raw}.fam \
-		${quality_scores} \
-		${controlsnps_file} 
+		"${bfile_raw}.bim" \
+		"${bfile_raw}.fam" \
+		"${quality_scores}" \
+		"${controlsnps_file}" 
 fi
 
 #Generate relatedness checks
@@ -96,9 +100,9 @@ then
 #	--out ${section_01_dir}/rel
 
 	plink \
-	--bfile ${bfile_raw} \
-	--mendel \
-	--out ${section_01_dir}/mendel
+		--bfile "${bfile_raw}" \
+		--mendel \
+		--out "${section_01_dir}/mendel"
 fi
 
 #Check covariate file
@@ -107,10 +111,10 @@ if [ "$arg" = "covariates" ] || [ "$arg" = "all" ] || [ "$arg" = "skipsib" ]
 then
 	section_message "covariates"
 	Rscript resources/checks/covariates.R \
-		${covariates} \
-		${bfile_raw}.fam \
-		${phenotypes} \
-		${covariate_list}
+		"${covariates}" \
+		"${bfile_raw}.fam" \
+		"${phenotypes}" \
+		"${covariate_list}"
 fi
 
 #Check phenotype file
@@ -119,11 +123,11 @@ if [ "$arg" = "phenotypes" ] || [ "$arg" = "all" ] || [ "$arg" = "skipsib" ]
 then
 	section_message "phenotypes"
 	Rscript resources/checks/phenotypes.R \
-		${phenotypes} \
-		${covariates} \
-		${bfile_raw}.fam \
-		${phenotype_list} \
-		${updated_phenotype_file}
+		"${phenotypes}" \
+		"${covariates}" \
+		"${bfile_raw}.fam" \
+		"${phenotype_list}" \
+		"${updated_phenotype_file}"
 fi
 
 #Finish 

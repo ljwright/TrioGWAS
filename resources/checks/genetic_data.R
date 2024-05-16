@@ -162,10 +162,10 @@ qual <- qual[qual[,1] %in% bim[,2], ]
 message("Retaining ", nrow(qual), " quality scores.")
 
 names(qual) <- c("V1", "V2", "V3")
-index <- qual$V2 > 0.5
+index <- !is.na(qual$V2) & qual$V2 > 0.5 # Need to make sure missings are respected.
 qual$V2[index] <- 1 - qual$V2[index]
 
-prop <- sum(qual[,2] < 0.01) / nrow(qual)
+prop <- sum(qual[,2] < 0.01, na.rm = TRUE) / nrow(qual) # Could be missing. I would also make this prop more expressive and use a variable name just once.
 if(prop > 0.01)
 {
 	msg <- paste0("More than 1% of the retained quality scores have a MAF < 0.01. Please filter on MAF < 0.01")
@@ -173,10 +173,18 @@ if(prop > 0.01)
 	warning("ERROR: ", msg)
 }
 
-prop <- sum(qual[,3] < 0.3) / nrow(qual)
+prop <- sum(qual[,3] < 0.3, na.rm = TRUE) / nrow(qual)
 if(prop > 0.01)
 {
 	msg <- paste0("More than 1% of the retained quality scores have a quality score < 0.3. Please filter the data.")
+	errorlist <- c(errorlist, msg)
+	warning("ERROR: ", msg)
+}
+
+prop_miss <- sum(is.na(qual[, 2]) | is.na(qual[, 3])) / nrow(qual)
+if(prop_miss > 0.01)
+{
+	msg <- paste0("More than 1% of the SNPs have missing info or MAF data")
 	errorlist <- c(errorlist, msg)
 	warning("ERROR: ", msg)
 }

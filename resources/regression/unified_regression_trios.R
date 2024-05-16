@@ -1,6 +1,6 @@
 rm(list = ls())
 
-.libPaths(c("~/projects/trio_gwas/bin", .libPaths()))
+# .libPaths(c("~/projects/trio_gwas/bin", .libPaths())) # This.libpaths isn't correct. Maybe it needs changing
 require(data.table)
 require(dplyr)
 require(sandwich)
@@ -33,7 +33,7 @@ fam <- fread(famfile)
 
 # Rename columns
 raw[1:5,1:7]
-head(bim) # Cols = FID, IID, pat_IID, mat_IID, sex, pheno
+head(bim) # Cols = FID, IID, pat_IID, mat_IID, sex, pheno # Make sure sex is taken from cov not fam
 head(fam)
 fam <- fam%>%
   rename(FID = "V1", IID = "V2", PAT = "V3", MAT = "V4")
@@ -49,7 +49,7 @@ mat <- fam %>% select(1,4) %>% # select FID and mat IID and rename MAT=IID
   rename(IID = "MAT")
 
 tmp <- raw %>%
-  select(-c(PAT,MAT,SEX,PHENOTYPE)) # sex is included in the covariates file already
+  select(-c(PAT,MAT,SEX,PHENOTYPE)) # LW: sex is included in the covariates file already
 
 # Create three dataframes with the genetic data for father, mother and offspring:
 patest <- tmp %>%
@@ -59,13 +59,14 @@ matest <- tmp %>%
 offtest <- raw %>%
   semi_join(off,by=c("FID","IID")) # merge with 'raw' file to get pat and mat IIDs
 
-patest[1:5,1:7]
+patest[1:5,1:7] # LW I suppose these can be removed when in production
 matest[1:5,1:7]
-offtest[1:5,1:7]
+offtest[1:5,1:7] 
+# LW: A family ID file could be created once which would make it simpler to prepare the data in a given iteration
 
 # Remove the mothers and fathers from the offspring dataframe
-offtest <- offtest %>%
-  filter(!IID %in% patest$IID) %>% # remove paternal IIDs from IID column in offspring dataframe
+offtest <- offtest %>% # I don't think you should overwrite something with the same name
+  filter(!IID %in% patest$IID) %>% # remove paternal IIDs from IID column in offspring dataframe # What if they have parents in the sample?
   filter(!IID %in% matest$IID) # remove maternal IIDs from IID column in offspring dataframe - so that IID column in offtest now only contains offspring IIDs
 
 # Rename the paternal SNPs
@@ -110,7 +111,7 @@ age_var <- paste("Age_",outcome,sep = "")
 
 # Rename age variable just to age
 ped <- ped %>%
-    rename(Age = age_var)
+    rename(Age = all_of(!!age_var)) # I would be careful here in case they is a column with the name age_var - I've added all_of(!!age_var) to make sure external character vector is used
 
 # Clean R environment
 clean <- setdiff(ls(), c("ped", "bim", "arguments", "outcome", "outfile")) # keep only main dataframe 'ped' and bim file for output; keep 'outcome' value; keep arguments value?
@@ -149,7 +150,7 @@ father_snp_cols <- grep("^p_chr", colnames(ped), value = TRUE)
 mother_snp_cols <- grep("^m_chr", colnames(ped), value = TRUE)
 
 # Pre-define covariates
-covariates <- "Age + Sex + batch1 + batch2 + batch3 + batch4"
+covariates <- "Age + Sex" # batch[1-4] isn't going to be the case for everyone. I think you should use covariate_list to define this programatically
 for (pc in 1:20) covariates <- paste(covariates, paste0("+ PC", pc))
 
 # Loop over all variants
@@ -158,7 +159,7 @@ for (pc in 1:20) covariates <- paste(covariates, paste0("+ PC", pc))
 ptm <- proc.time()
 
 # Initialise list to store model results
-temp_results <- vector("list", length = length(offspring_snp_cols) * 6)
+temp_results <- vector("list", length = length(offspring_snp_cols) * 6) # How come this is six times the length?
 results_index <- 1
 
 for (i in 1:length(offspring_snp_cols)) {
@@ -171,7 +172,7 @@ for (i in 1:length(offspring_snp_cols)) {
   mother_part <- mother_snp_cols[i]
 
   # Define regression models
-  formulas <- list(
+  formulas <- list( # Do you want to use the same sample across each of these? It would save a lot of time if there was a preparation step subsetting the .bed files to complete families and setting up one full .fam file.
     paste(outcome, " ~ ", offspring_part, "+", covariates),
     paste(outcome, " ~ ", father_part, "+", covariates),
     paste(outcome, " ~ ", mother_part, "+", covariates),
@@ -198,14 +199,16 @@ for (i in 1:length(offspring_snp_cols)) {
       temp_results[[results_index]] <- list(
         Model = model_name,
         SNP = offspring_snp_cols[i],
-        Beta = summary(model)$coefficients[1:4, "Estimate"],
+        Beta = summary(model)$coefficients[1:4, "Estimate"], # This calls summary() multiple times which isn't necessary. I'd use broom::tidy instead. 
+        # Also 1:4 doesn't necessarily keep just keep the SNP results. Further the names on the vectors are quite long (c_chr1_738223_SNP_C) which is going to use up memory uneccesarily
         SE = summary(model, vcov = "robust")$coefficients[1:4, "Std. Error"],
         P_value = summary(model, vcov = "robust")$coefficients[1:4, "Pr(>|t|)"]
+        # I also think you need to return more information - e.g., on the achieved sample.
       )
       results_index <- results_index + 1
 
     }, error = function(e) {
-      message("Error in fitting ", model_name, ": ", e$message)
+      message("Error in fitting ", model_name, ": ", e$message) # Are you saving this result to say which SNPs are missing in a cohort?
       skip_variant <<- TRUE
     })
   }
@@ -231,7 +234,8 @@ output <- do.call(rbind, lapply(temp_results, function(x){
     data.frame(Model = simp_mod, CHR = CHR, SNP = simp_snp, BP = BP, A1 = A1, Beta = x$Beta, SE = x$SE, P_value = x$P_value, stringsAsFactors = FALSE)
   }
 }))
-
+# I think this is returning to much information and it means the results file is very large (e.g, SNP Id isn't needed with BP, A1, etc.). Also coefficient name doesn't seem to be stored). It's probably more efficient to save these as R lists: res[[SNP]][[Model]]
+# Rather than having a Step 5, appending into one large data frame, could just zip the results up? And then do this when the results are sent to you?
 # Runtime:
 run_time<-proc.time()-ptm
 cat("Run time: ", run_time)

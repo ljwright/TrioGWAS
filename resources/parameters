@@ -29,4 +29,5 @@ updated_phenotype_file="${section_01_dir}/updated_phenotypes.txt"
 summary_file=${section_02_dir}/phen-cov-summary.txt
 
 #plink path
-plink="${home_directory}/resources/./plink1.90"
+plink="${home_directory}/resources/plink1.90"
+chmod +x "${plink}" # Needs changing to executable

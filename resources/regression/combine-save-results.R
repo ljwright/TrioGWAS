@@ -1,4 +1,4 @@
-.libPaths(c("~/projects/trio_gwas/bin", .libPaths()))
+# .libPaths(c("~/projects/trio_gwas/bin", .libPaths()))
 require(data.table)
 
 arguments <- commandArgs(trailingOnly = TRUE)
@@ -14,7 +14,7 @@ file_pattern <- sprintf("output.*.%s_results.txt", phenotype)
 
 #file_list <- list.files(results_dir, pattern = "\\.txt$", full.names = TRUE)
 file_list <- list.files(results_dir, pattern = file_pattern, full.names = TRUE)
-results_list <- lapply(file_list, fread)
+results_list <- lapply(file_list, fread) 
 
 paste0("Combining model results")
 cres <- rbindlist(results_list)
